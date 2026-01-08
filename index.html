@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>垃圾分类回收管理系统</title>
+    <!-- 使用国内CDN加速 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #00C897;
+            --primary-dark: #019267;
+            --primary-light: #8EF6CC;
+            --secondary: #FF9A3C;
+            --danger: #FF6B6B;
+            --info: #4D96FF;
+            --light: #f8fafc;
+            --dark: #2D3748;
+            --gray: #718096;
+            --border: #E2E8F0;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --neon-primary: #00f5ff;
+            --neon-secondary: #ff00ff;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: all 0.5s ease;
+        }
+        
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e2e8f0;
+        }
+        
+        /* 粒子背景容器 */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* 标语横幅样式 */
+        .slogan-banner {
+            background: linear-gradient(135deg, #1a936f 0%, #0d5c47 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 30px 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        body.dark-mode .slogan-banner {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+        }
+        
+        .slogan-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .slogan-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #fff 0%, #e0f7fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        body.dark-mode .slogan-text {
+            background: linear-gradient(135deg, #fff 0%, #80deea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .slogan-icon {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .slogan-divider {
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            margin: 0 auto 25px;
+            border-radius: 2px;
+        }
+        
+        .slogan-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .custom-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px 0;
+            box-shadow: var(--shadow);
+            border-radius: 25px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            z-index: 1;
+        }
+        
+        body.dark-mode .custom-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+        }
+        
+        .custom-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .custom-header:hover::before {
+            opacity: 1;
+        }
+        
+        /* 毛玻璃效果卡片 */
+        .custom-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            padding: 35px;
+            margin-bottom: 35px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body.dark-mode .custom-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .custom-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .custom-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 30px rgba(0, 200, 151, 0.3);
+        }
+        
+        .custom-card:hover::before {
+            opacity: 1;
+        }
+        
+        .custom-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid rgba(0, 200, 151, 0.2);
+            position: relative;
+        }
+        
+        .custom-card-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        body.dark-mode .custom-card-title {
+            background: linear-gradient(135deg, #4dabf7, #339af0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .custom-card-title i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+        
+        .nav-tabs-custom {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        body.dark-mode .nav-tabs-custom {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-tab-custom {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 700;
+            color: var(--gray);
+            border-radius: 15px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-width: 170px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-tab-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .nav-tab-custom:hover::before {
+            left: 100%;
+        }
+        
+        .nav-tab-custom.active {
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 
+                0 10px 20px rgba(0, 200, 151, 0.4),
+                0 0 20px rgba(0, 200, 151, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        body.dark-mode .nav-tab-custom.active {
+            background: linear-gradient(135deg, #4dabf7, #339af0);
+        }
+        
+        .nav-tab-custom:hover:not(.active) {
+            background: rgba(0, 200, 151, 0.15);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        body.dark-mode .nav-tab-custom:hover:not(.active) {
+            background: rgba(77, 171, 247, 0.2);
+            color: #4dabf7;
+        }
+        
+        .tab-content-custom {
+            display: none;
+            animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .tab-content-custom.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        /* 分类徽章美化 */
+        .category-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .category-badge:hover::before {
+            left: 100%;
+        }
+        
+        .category-recyclable {
+            background: linear-gradient(135deg, #00C897, #019267);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 200, 151, 0.3);
+        }
+        
+        .category-hazardous {
+            background: linear-gradient(135deg, #FF6B6B, #FF5252);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .category-household {
+            background: linear-gradient(135deg, #FF9A3C, #FF7A00);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 154, 60, 0.3);
+        }
+        
+        .category-residual {
+            background: linear-gradient(135deg, #9E9E9E, #757575);
+            color: white;
+            box-shadow: 0 4px 15px rgba(158, 158, 158, 0.3);
+        }
+        
+        /* 按钮美化 */
+        .custom-btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .custom-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .custom-btn:hover::before {
+            left: 100%;
+        }
+        
+        .custom-btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .custom-btn-primary:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 15px 30px rgba(0, 200, 151, 0.4),
+                0 0 30px rgba(0, 200, 151, 0.2);
+        }
+        
+        .custom-btn-danger {
+            background: linear-gradient(135deg, var(--danger), #FF5252);
+            color: white;
+        }
+        
+        .custom-btn-danger:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 15px 30px rgba(255, 107, 107, 0.4),
+                0 0 30px rgba(255, 107, 107, 0.2);
+        }
+        
+        .custom-btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .custom-btn-outline:hover {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 200, 151, 0.3);
+        }
+        
+        /* 统计卡片美化 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            padding: 35px;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        body.dark-mode .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+        }
+        
+        .stat-card.recyclable::before {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+        
+        .stat-card.hazardous::before {
+            background: linear-gradient(90deg, var(--danger), #FF5252);
+        }
+        
+        .stat-card.household::before {
+            background: linear-gradient(90deg, var(--secondary), #FF7A00);
+        }
+        
+        .stat-card.residual::before {
+            background: linear-gradient(90deg, #9E9E9E, #757575);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-15px) scale(1.05);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 40px rgba(0, 200, 151, 0.2);
+        }
+        
+        .stat-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-recyclable .stat-icon {
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.15), rgba(1, 146, 103, 0.1));
+            color: var(--primary);
+        }
+        
+        .stat-hazardous .stat-icon {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 82, 82, 0.1));
+            color: var(--danger);
+        }
+        
+        .stat-household .stat-icon {
+            background: linear-gradient(135deg, rgba(255, 154, 60, 0.15), rgba(255, 122, 0, 0.1));
+            color: var(--secondary);
+        }
+        
+        .stat-residual .stat-icon {
+            background: linear-gradient(135deg, rgba(158, 158, 158, 0.15), rgba(117, 117, 117, 0.1));
+            color: #757575;
+        }
+        
+        .stat-value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 20px 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-recyclable .stat-value {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+        }
+        
+        .stat-hazardous .stat-value {
+            background: linear-gradient(135deg, var(--danger), #FF5252);
+            -webkit-background-clip: text;
+        }
+        
+        .stat-household .stat-value {
+            background: linear-gradient(135deg, var(--secondary), #FF7A00);
+            -webkit-background-clip: text;
+        }
+        
+        .stat-residual .stat-value {
+            background: linear-gradient(135deg, #9E9E9E, #757575);
+            -webkit-background-clip: text;
+        }
+        
+        /* 图表容器美化 */
+        .chart-container {
+            height: 400px;
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+        
+        body.dark-mode .chart-container {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-container:hover {
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.15),
+                0 0 30px rgba(0, 200, 151, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        /* 指南卡片美化 */
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 35px;
+        }
+        
+        .guide-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            padding: 35px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        body.dark-mode .guide-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .guide-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+        }
+        
+        .guide-card.recyclable::before {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+        
+        .guide-card.hazardous::before {
+            background: linear-gradient(90deg, var(--danger), #FF5252);
+        }
+        
+        .guide-card.household::before {
+            background: linear-gradient(90deg, var(--secondary), #FF7A00);
+        }
+        
+        .guide-card.residual::before {
+            background: linear-gradient(90deg, #9E9E9E, #757575);
+        }
+        
+        .guide-card:hover {
+            transform: translateY(-15px) scale(1.05);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 40px rgba(0, 200, 151, 0.2);
+        }
+        
+        .guide-icon {
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            display: inline-block;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .guide-card.recyclable .guide-icon {
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.15), rgba(1, 146, 103, 0.1));
+            color: var(--primary);
+        }
+        
+        .guide-card.hazardous .guide-icon {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 82, 82, 0.1));
+            color: var(--danger);
+        }
+        
+        .guide-card.household .guide-icon {
+            background: linear-gradient(135deg, rgba(255, 154, 60, 0.15), rgba(255, 122, 0, 0.1));
+            color: var(--secondary);
+        }
+        
+        .guide-card.residual .guide-icon {
+            background: linear-gradient(135deg, rgba(158, 158, 158, 0.15), rgba(117, 117, 117, 0.1));
+            color: #757575;
+        }
+        
+        /* AI聊天容器美化 */
+        .ai-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 550px;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+        
+        body.dark-mode .ai-chat-container {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .ai-chat-container:hover {
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.15),
+                0 0 30px rgba(0, 200, 151, 0.1);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f8fafc 0%, #e4edf5 100%);
+        }
+        
+        body.dark-mode .chat-messages {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .message {
+            margin-bottom: 25px;
+            padding: 18px 25px;
+            border-radius: 20px;
+            max-width: 85%;
+            line-height: 1.6;
+            position: relative;
+            animation: messageAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes messageAppear {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+            box-shadow: 
+                0 8px 25px rgba(0, 200, 151, 0.3),
+                0 0 20px rgba(0, 200, 151, 0.1);
+        }
+        
+        .ai-message {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 200, 151, 0.2);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        body.dark-mode .ai-message {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(77, 171, 247, 0.2);
+        }
+        
+        .thinking-message {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 200, 151, 0.2);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+        }
+        
+        body.dark-mode .thinking-message {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(77, 171, 247, 0.2);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.5s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.3s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        /* 通知美化 */
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 20px 30px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.2),
+                0 0 30px rgba(0, 200, 151, 0.2);
+            z-index: 1100;
+            transform: translateX(150%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.9), rgba(1, 146, 103, 0.8));
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(255, 82, 82, 0.8));
+        }
+        
+        .notification i {
+            font-size: 1.8rem;
+        }
+        
+        /* 空状态美化 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 25px;
+            color: #CBD5E0;
+            opacity: 0.7;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        
+        body.dark-mode .empty-state h3 {
+            color: #e2e8f0;
+        }
+        
+        /* 页脚美化 */
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 40px;
+            color: var(--gray);
+            font-size: 1rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 25px 25px 0 0;
+        }
+        
+        body.dark-mode .footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 批量操作区域美化 */
+        .batch-actions {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        body.dark-mode .batch-actions {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .batch-actions .selected-count {
+            font-weight: 800;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+        
+        /* 表格美化 */
+        table.table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        table.table th {
+            border-top: none;
+            font-weight: 700;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f8fafc, #e4edf5);
+            padding: 20px;
+            border-bottom: 2px solid rgba(0, 200, 151, 0.2);
+        }
+        
+        body.dark-mode table.table th {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+            color: #e2e8f0;
+            border-bottom: 2px solid rgba(77, 171, 247, 0.2);
+        }
+        
+        table.table td {
+            padding: 20px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode table.table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        table.table tbody tr {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        body.dark-mode table.table tbody tr {
+            background: rgba(30, 41, 59, 0.5);
+        }
+        
+        table.table tbody tr:hover {
+            background: linear-gradient(90deg, 
+                rgba(0, 200, 151, 0.1), 
+                rgba(0, 200, 151, 0.05)
+            );
+            transform: translateX(10px);
+            box-shadow: 
+                0 10px 25px rgba(0, 0, 0, 0.1),
+                0 0 20px rgba(0, 200, 151, 0.1);
+        }
+        
+        body.dark-mode table.table tbody tr:hover {
+            background: linear-gradient(90deg, 
+                rgba(77, 171, 247, 0.2), 
+                rgba(77, 171, 247, 0.1)
+            );
+        }
+        
+        /* 表单控件美化 */
+        .form-control, .form-select {
+            border-radius: 15px;
+            border: 2px solid rgba(226, 232, 240, 0.5);
+            padding: 15px 20px;
+            font-size: 1rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-mode .form-control, 
+        body.dark-mode .form-select {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 
+                0 0 0 4px rgba(0, 200, 151, 0.2),
+                0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        /* 模态框美化 */
+        .modal-content {
+            border-radius: 25px;
+            border: none;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.3),
+                0 0 50px rgba(0, 200, 151, 0.2);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        body.dark-mode .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 25px 25px 0 0;
+            border-bottom: none;
+            padding: 30px;
+        }
+        
+        .modal-header .btn-close {
+            filter: invert(1) brightness(2);
+        }
+        
+        .btn-close:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .theme-toggle.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 1px;
+            left: 3px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle.active::before {
+            left: calc(100% - 27px);
+        }
+        
+        .theme-toggle i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: white;
+        }
+        
+        .theme-toggle .fa-sun {
+            left: 8px;
+            opacity: 0.7;
+        }
+        
+        .theme-toggle .fa-moon {
+            right: 8px;
+            opacity: 0.7;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .slogan-text {
+                font-size: 1.4rem;
+            }
+            
+            .slogan-icon {
+                font-size: 2.5rem;
+            }
+            
+            .nav-tabs-custom {
+                flex-direction: column;
+            }
+            
+            .nav-tab-custom {
+                min-width: 100%;
+                margin: 5px 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .guide-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .batch-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .custom-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+            
+            .custom-card {
+                padding: 25px;
+            }
+        }
+        
+        /* 骨架屏加载动画 */
+        .skeleton {
+            background: linear-gradient(90deg, 
+                #f0f0f0 25%, 
+                #e0e0e0 50%, 
+                #f0f0f0 75%
+            );
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 10px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        body.dark-mode .skeleton {
+            background: linear-gradient(90deg, 
+                #2d3748 25%, 
+                #4a5568 50%, 
+                #2d3748 75%
+            );
+            background-size: 200% 100%;
+        }
+        
+        /* 霓虹文字效果 */
+        .neon-text {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 40px currentColor;
+            animation: neonGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes neonGlow {
+            from {
+                text-shadow: 
+                    0 0 5px currentColor,
+                    0 0 10px currentColor,
+                    0 0 20px currentColor,
+                    0 0 40px currentColor;
+            }
+            to {
+                text-shadow: 
+                    0 0 10px currentColor,
+                    0 0 20px currentColor,
+                    0 0 30px currentColor,
+                    0 0 50px currentColor;
+            }
+        }
+        
+        /* 新增：搜索表单美化 */
+        .search-form {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        body.dark-mode .search-form {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.7));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .search-results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 200, 151, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        body.dark-mode .search-results-info {
+            background: rgba(77, 171, 247, 0.1);
+            border-left: 5px solid #4dabf7;
+        }
+        
+        /* 新增：高级搜索选项 */
+        .advanced-search {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+            margin-top: 15px;
+        }
+        
+        .advanced-search.expanded {
+            max-height: 300px;
+        }
+        
+        .toggle-advanced-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .toggle-advanced-btn:hover {
+            color: var(--primary-dark);
+        }
+        
+        body.dark-mode .toggle-advanced-btn {
+            color: #4dabf7;
+        }
+        
+        /* 修复输入框问题 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        /* 确保表单控件可以正确接收输入 */
+        input.form-control, 
+        textarea.form-control, 
+        select.form-select {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+        }
+        
+        /* 添加表单验证样式 */
+        .is-invalid {
+            border-color: var(--danger) !important;
+        }
+        
+        .invalid-feedback {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 粒子背景容器 -->
+        <div class="particles-container" ref="particlesContainer"></div>
+
+        <!-- 标语横幅 -->
+        <div class="slogan-banner">
+            <div class="container">
+                <div class="slogan-content">
+                    <div class="slogan-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="slogan-text">
+                        "惜资源、护环境是时代使命，垃圾分类是全民必修课，唯有人人尽责、事事践行，方能让绿水青山永续传承。"
+                    </div>
+                    <div class="slogan-divider"></div>
+                    <div class="slogan-subtitle">
+                        共建绿色家园，从垃圾分类开始
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <header class="custom-header">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="logo d-flex align-items-center gap-4 mb-3 mb-md-0">
+                            <i class="fas fa-recycle fa-3x neon-text" style="color: var(--primary);"></i>
+                            <h1 class="mb-0">垃圾分类回收管理系统</h1>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="theme-toggle me-3" :class="{ active: isDarkMode }" @click="toggleTheme">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <div class="user-info d-flex align-items-center gap-3 bg-light bg-opacity-20 px-4 py-2 rounded-pill">
+                                <i class="fas fa-user-circle fa-lg"></i>
+                                <span>管理员</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="nav-tabs-custom">
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'all-garbage' }" @click="switchTab('all-garbage')">
+                    <i class="fas fa-list"></i>
+                    <span>所有垃圾信息</span>
+                </div>
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'search-garbage' }" @click="switchTab('search-garbage')">
+                    <i class="fas fa-search"></i>
+                    <span>查询垃圾</span>
+                </div>
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'add-garbage' }" @click="switchTab('add-garbage')">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>添加新垃圾</span>
+                </div>
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'stats' }" @click="switchTab('stats')">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>分类统计</span>
+                </div>
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'guide' }" @click="switchTab('guide')">
+                    <i class="fas fa-book"></i>
+                    <span>处理指南</span>
+                </div>
+                <div class="nav-tab-custom" :class="{ active: activeTab === 'ai-service' }" @click="switchTab('ai-service')">
+                    <i class="fas fa-robot"></i>
+                    <span>AI客服</span>
+                </div>
+            </div>
+
+            <!-- 所有垃圾信息 -->
+            <div id="all-garbage" class="tab-content-custom" :class="{ active: activeTab === 'all-garbage' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-list"></i>
+                            所有垃圾信息
+                        </h2>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <input type="text" v-model="searchAll" class="form-control" style="min-width: 250px;" placeholder="搜索垃圾名称、描述或处理方式..." @input="performAllSearch">
+                        </div>
+                    </div>
+                    
+                    <!-- 批量操作区域 -->
+                    <div class="batch-actions" v-if="selectedGarbage.length > 0">
+                        <div class="selected-count">
+                            <i class="fas fa-check-circle"></i> 已选择 {{ selectedGarbage.length }} 个项目
+                        </div>
+                        <button class="custom-btn custom-btn-danger" @click="batchDelete">
+                            <i class="fas fa-trash"></i> 批量删除
+                        </button>
+                        <button class="custom-btn custom-btn-outline" @click="clearSelection">
+                            <i class="fas fa-times"></i> 取消选择
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" v-model="selectAll" @change="toggleSelectAll">
+                                    </th>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>描述</th>
+                                    <th>处理方式</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in filteredGarbage" :key="item.id">
+                                    <td>
+                                        <input type="checkbox" v-model="selectedGarbage" :value="item.id">
+                                    </td>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.name }}</td>
+                                    <td><span class="category-badge" :class="'category-' + getCategoryClass(item.category)">{{ item.category }}</span></td>
+                                    <td>{{ item.description }}</td>
+                                    <td>{{ item.handling }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary" @click="editGarbage(item)">
+                                                <i class="fas fa-edit"></i> 修改
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" @click="deleteGarbage(item.id)">
+                                                <i class="fas fa-trash"></i> 删除
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" v-if="filteredGarbage.length === 0">
+                        <i class="fas fa-inbox"></i>
+                        <h3>暂无垃圾数据</h3>
+                        <p v-if="searchAll">未找到包含"{{ searchAll }}"的垃圾记录</p>
+                        <p v-else>点击"添加新垃圾"选项卡来添加第一条垃圾记录</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 查询垃圾 -->
+            <div id="search-garbage" class="tab-content-custom" :class="{ active: activeTab === 'search-garbage' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-search"></i>
+                            查询垃圾
+                        </h2>
+                    </div>
+                    
+                    <!-- 搜索表单 -->
+                    <div class="search-form">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">按名称查询</label>
+                                <input type="text" v-model="searchName" class="form-control" placeholder="输入垃圾名称..." @keyup.enter="performSearch">
+                                <small class="form-text text-muted">支持模糊搜索，如输入"纸"可找到所有包含"纸"的垃圾</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">按分类查询</label>
+                                <select v-model="searchCategory" class="form-select">
+                                    <option value="">全部分类</option>
+                                    <option value="可回收">可回收垃圾</option>
+                                    <option value="有害">有害垃圾</option>
+                                    <option value="厨余">厨余垃圾</option>
+                                    <option value="其他">其他垃圾</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 高级搜索选项 -->
+                        <div class="mb-3">
+                            <button class="toggle-advanced-btn" @click="toggleAdvancedSearch">
+                                <i class="fas" :class="showAdvancedSearch ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                {{ showAdvancedSearch ? '收起高级选项' : '展开高级选项' }}
+                            </button>
+                            <div class="advanced-search" :class="{ expanded: showAdvancedSearch }">
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">按描述查询</label>
+                                        <input type="text" v-model="searchDescription" class="form-control" placeholder="输入描述关键词...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">按处理方式查询</label>
+                                        <input type="text" v-model="searchHandling" class="form-control" placeholder="输入处理方式关键词...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 flex-wrap">
+                            <button class="custom-btn custom-btn-primary" @click="performSearch">
+                                <i class="fas fa-search"></i> 查询
+                            </button>
+                            <button class="custom-btn custom-btn-outline" @click="resetSearch">
+                                <i class="fas fa-redo"></i> 重置
+                            </button>
+                            <button class="custom-btn custom-btn-outline" @click="switchTab('add-garbage')">
+                                <i class="fas fa-plus"></i> 添加新垃圾
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索结果信息 -->
+                    <div class="search-results-info" v-if="searchResults.length > 0 || isSearchPerformed">
+                        <div>
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span v-if="searchResults.length > 0">
+                                找到 {{ searchResults.length }} 条匹配的垃圾记录
+                                <span v-if="searchName">（包含"{{ searchName }}"）</span>
+                                <span v-if="searchCategory">（分类：{{ searchCategory }}）</span>
+                            </span>
+                            <span v-else>未找到匹配的垃圾记录</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>描述</th>
+                                    <th>处理方式</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in searchResults" :key="item.id">
+                                    <td>{{ item.id }}</td>
+                                    <td>
+                                        <span v-html="highlightText(item.name, searchName)"></span>
+                                    </td>
+                                    <td><span class="category-badge" :class="'category-' + getCategoryClass(item.category)">{{ item.category }}</span></td>
+                                    <td v-html="highlightText(item.description, searchDescription || searchName)"></td>
+                                    <td v-html="highlightText(item.handling, searchHandling || searchName)"></td>
+                                    <td>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" v-if="searchResults.length === 0 && isSearchPerformed">
+                        <i class="fas fa-search"></i>
+                        <h3>暂无搜索结果</h3>
+                        <p>请尝试修改查询条件或使用更广泛的关键词</p>
+                        <button class="custom-btn custom-btn-outline mt-3" @click="resetSearch">
+                            <i class="fas fa-redo"></i> 重置搜索条件
+                        </button>
+                    </div>
+                    <div class="empty-state" v-else-if="searchResults.length === 0 && !isSearchPerformed">
+                        <i class="fas fa-search"></i>
+                        <h3>垃圾分类查询</h3>
+                        <p>请输入查询条件搜索垃圾信息，支持按名称、分类、描述和处理方式搜索</p>
+                        <div class="mt-4">
+                            <button class="custom-btn custom-btn-primary me-3" @click="performSearch">
+                                <i class="fas fa-search"></i> 搜索所有垃圾
+                            </button>
+                            <button class="custom-btn custom-btn-outline" @click="showSearchTips">
+                                <i class="fas fa-lightbulb"></i> 搜索技巧
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加新垃圾 -->
+            <div id="add-garbage" class="tab-content-custom" :class="{ active: activeTab === 'add-garbage' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-plus-circle"></i>
+                            添加新垃圾
+                        </h2>
+                    </div>
+                    <form @submit.prevent="addGarbage">
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold" for="garbage-name">垃圾名称</label>
+                            <input type="text" id="garbage-name" class="form-control" v-model="newGarbage.name" required>
+                            <small class="form-text text-muted">请输入准确的垃圾名称，如"废纸类"、"塑料瓶"等</small>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold" for="garbage-category">分类</label>
+                            <select id="garbage-category" class="form-select" v-model="newGarbage.category" required>
+                                <option value="">请选择分类</option>
+                                <option value="可回收">可回收垃圾</option>
+                                <option value="有害">有害垃圾</option>
+                                <option value="厨余">厨余垃圾</option>
+                                <option value="其他">其他垃圾</option>
+                            </select>
+                            <small class="form-text text-muted">请根据垃圾性质选择正确的分类</small>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold" for="garbage-description">描述</label>
+                            <textarea id="garbage-description" class="form-control" rows="3" v-model="newGarbage.description" required></textarea>
+                            <small class="form-text text-muted">请详细描述垃圾的特征和包含的物品</small>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold" for="garbage-handling">处理方式</label>
+                            <textarea id="garbage-handling" class="form-control" rows="3" v-model="newGarbage.handling" required></textarea>
+                            <small class="form-text text-muted">请说明正确的处理方法和注意事项</small>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="custom-btn custom-btn-primary">
+                                <i class="fas fa-plus"></i> 添加垃圾
+                            </button>
+                            <button type="button" class="custom-btn custom-btn-outline" @click="resetNewGarbageForm">
+                                <i class="fas fa-times"></i> 重置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 分类统计 -->
+            <div id="stats" class="tab-content-custom" :class="{ active: activeTab === 'stats' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            垃圾分类统计
+                        </h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card recyclable stat-recyclable">
+                            <i class="fas fa-recycle stat-icon"></i>
+                            <h3>可回收垃圾</h3>
+                            <div class="stat-value">{{ recyclableCount }}</div>
+                            <p>可回收利用的废弃物</p>
+                        </div>
+                        <div class="stat-card hazardous stat-hazardous">
+                            <i class="fas fa-skull-crossbones stat-icon"></i>
+                            <h3>有害垃圾</h3>
+                            <div class="stat-value">{{ hazardousCount }}</div>
+                            <p>对人体或环境有害的废弃物</p>
+                        </div>
+                        <div class="stat-card household stat-household">
+                            <i class="fas fa-apple-alt stat-icon"></i>
+                            <h3>厨余垃圾</h3>
+                            <div class="stat-value">{{ householdCount }}</div>
+                            <p>易腐烂的厨房废弃物</p>
+                        </div>
+                        <div class="stat-card residual stat-residual">
+                            <i class="fas fa-trash stat-icon"></i>
+                            <h3>其他垃圾</h3>
+                            <div class="stat-value">{{ residualCount }}</div>
+                            <p>不属于以上三类的废弃物</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="garbage-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 处理指南 -->
+            <div id="guide" class="tab-content-custom" :class="{ active: activeTab === 'guide' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-book"></i>
+                            垃圾分类处理指南
+                        </h2>
+                    </div>
+                    <div class="guide-grid">
+                        <div class="guide-card recyclable">
+                            <div class="guide-icon">
+                                <i class="fas fa-recycle"></i>
+                            </div>
+                            <h3>可回收垃圾</h3>
+                            <p>主要包括废纸、塑料、玻璃、金属和布料五大类。</p>
+                            <ul>
+                                <li>废纸：报纸、书本纸、包装用纸、广告用纸等</li>
+                                <li>塑料：各种塑料袋、塑料泡沫、塑料包装等</li>
+                                <li>玻璃：玻璃瓶、碎玻璃片、镜子等</li>
+                                <li>金属：易拉罐、铁皮罐头盒等</li>
+                                <li>布料：废弃衣服、桌布、毛巾等</li>
+                            </ul>
+                        </div>
+                        <div class="guide-card hazardous">
+                            <div class="guide-icon">
+                                <i class="fas fa-skull-crossbones"></i>
+                            </div>
+                            <h3>有害垃圾</h3>
+                            <p>含有对人体健康或自然环境造成直接或潜在危害的物质。</p>
+                            <ul>
+                                <li>废电池：充电电池、纽扣电池等</li>
+                                <li>废荧光灯管：日光灯管、节能灯等</li>
+                                <li>废药品：过期药品、药品包装等</li>
+                                <li>废油漆：油漆桶、染发剂罐等</li>
+                                <li>废温度计：水银温度计、血压计等</li>
+                            </ul>
+                        </div>
+                        <div class="guide-card household">
+                            <div class="guide-icon">
+                                <i class="fas fa-apple-alt"></i>
+                            </div>
+                            <h3>厨余垃圾</h3>
+                            <p>日常生活及食品加工、饮食服务等活动中产生的垃圾。</p>
+                            <ul>
+                                <li>剩菜剩饭：米饭、面食、肉类等</li>
+                                <li>瓜果皮核：水果皮、果核等</li>
+                                <li>菜叶菜根：蔬菜叶、菜根等</li>
+                                <li>茶叶渣：泡过的茶叶、咖啡渣等</li>
+                                <li>过期食品：面包、糕点等</li>
+                            </ul>
+                        </div>
+                        <div class="guide-card residual">
+                            <div class="guide-icon">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <h3>其他垃圾</h3>
+                            <p>除可回收物、有害垃圾、厨余垃圾以外的其他生活垃圾。</p>
+                            <ul>
+                                <li>尘土：清扫的灰尘、烟蒂等</li>
+                                <li>污染纸张：卫生纸、餐巾纸等</li>
+                                <li>陶瓷碎片：破碎的碗碟、陶瓷制品等</li>
+                                <li>一次性用品：一次性餐具、尿不湿等</li>
+                                <li>难以分类的废弃物</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI客服 -->
+            <div id="ai-service" class="tab-content-custom" :class="{ active: activeTab === 'ai-service' }">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h2 class="custom-card-title">
+                            <i class="fas fa-robot"></i>
+                            AI垃圾分类助手
+                        </h2>
+                    </div>
+                    <div class="ai-chat-container">
+                        <div class="chat-messages" id="chat-messages" ref="chatMessages">
+                            <div class="message ai-message">
+                                您好！我是垃圾分类AI助手，可以回答您关于垃圾分类的任何问题。请问有什么可以帮助您的？
+                            </div>
+                        </div>
+                        <div class="chat-input d-flex p-3 bg-white border-top">
+                            <input type="text" v-model="chatInput" class="form-control me-3" placeholder="输入您的问题..." @keypress.enter="sendMessage" :disabled="isLoading">
+                            <button class="custom-btn custom-btn-primary" @click="sendMessage" :disabled="isLoading">
+                                <i class="fas fa-paper-plane"></i> 发送
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑垃圾信息模态框 -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">
+                            <i class="fas fa-edit me-2"></i>
+                            修改垃圾信息
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="saveEdit">
+                            <input type="hidden" v-model="editingGarbage.id">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="edit-name">垃圾名称</label>
+                                <input type="text" id="edit-name" class="form-control" v-model="editingGarbage.name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="edit-category">分类</label>
+                                <select id="edit-category" class="form-select" v-model="editingGarbage.category" required>
+                                    <option value="">请选择分类</option>
+                                    <option value="可回收">可回收垃圾</option>
+                                    <option value="有害">有害垃圾</option>
+                                    <option value="厨余">厨余垃圾</option>
+                                    <option value="其他">其他垃圾</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="edit-description">描述</label>
+                                <textarea id="edit-description" class="form-control" rows="3" v-model="editingGarbage.description" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="edit-handling">处理方式</label>
+                                <textarea id="edit-handling" class="form-control" rows="3" v-model="editingGarbage.handling" required></textarea>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="custom-btn custom-btn-primary">
+                                    <i class="fas fa-save me-2"></i> 保存修改
+                                </button>
+                                <button type="button" class="custom-btn custom-btn-outline" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i> 取消
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 垃圾详情模态框 -->
+        <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detailModalLabel">
+                            <i class="fas fa-info-circle me-2"></i>
+                            垃圾详细信息
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="viewingGarbage" class="detail-content">
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h3 class="fw-bold">{{ viewingGarbage.name }}</h3>
+                                    <span class="category-badge" :class="'category-' + getCategoryClass(viewingGarbage.category)">{{ viewingGarbage.category }}</span>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="badge bg-light text-dark p-2">
+                                        <i class="fas fa-hashtag me-1"></i> ID: {{ viewingGarbage.id }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                                    <h5 class="fw-bold border-bottom pb-2">
+                                        <i class="fas fa-align-left me-2"></i>描述
+                                    </h5>
+                                    <p class="lead">{{ viewingGarbage.description }}</p>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <h5 class="fw-bold border-bottom pb-2">
+                                        <i class="fas fa-tasks me-2"></i>处理方式
+                                    </h5>
+                                    <p class="lead">{{ viewingGarbage.handling }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="custom-btn custom-btn-outline" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> 关闭
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通知 -->
+        <div class="notification" :class="{ show: notification.show, success: notification.type === 'success', error: notification.type === 'error' }" v-if="notification.show">
+            <i :class="notification.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+            <span>{{ notification.message }}</span>
+        </div>
+
+        <div class="footer">
+            <p>垃圾分类回收管理系统 &copy; 2025 Acccccc版权所有</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 初始垃圾数据
+        const initialGarbageData = [
+            { id: 1, name: "废纸类", category: "可回收", description: "报纸、书本、纸箱、包装盒、办公用纸、广告单等", handling: "保持其清洁干燥，避免污染压扁平整，节省空间，投放至可回收物收集容器" },
+            { id: 2, name: "塑料瓶", category: "可回收", description: "饮料瓶、洗发水瓶、酸奶杯、塑料玩具、塑料盆等", handling: "清空内容物并简单冲洗（尤其装过食物、油脂的)，尽量压扁，投放至可回收物收集容器" },
+            { id: 3, name: "废电池", category: "有害", description: "各类充电电池、纽扣电池等", handling: "投放至有害垃圾收集容器" },
+            { id: 4, name: "过期药品", category: "有害", description: "过期或废弃的药品", handling: "投放至有害垃圾收集容器或药店回收点" },
+            { id: 5, name: "剩饭剩菜", category: "厨余", description: "餐饮废弃物", handling: "沥干水分后投放至厨余垃圾收集容器" },
+            { id: 6, name: "果皮", category: "厨余", description: "水果皮、果核等", handling: "投放至厨余垃圾收集容器" },
+            { id: 7, name: "卫生纸", category: "其他", description: "使用过的卫生纸、餐巾纸", handling: "投放至其他垃圾收集容器" },
+            { id: 8, name: "陶瓷碎片", category: "其他", description: "破碎的碗、盘等陶瓷制品", handling: "投放至其他垃圾收集容器" },
+            { id: 9, name: "废玻璃", category: "可回收", description: "酒瓶、调料瓶、玻璃杯、窗户玻璃等", handling: "轻拿轻放，避免破碎，保持清洁，去除瓶盖等非玻璃部件，破碎玻璃需用纸包好并标注'玻璃碎片'，防止伤人，投放至可回收物收集容器" },
+            { id: 10, name: "废荧光灯管", category: "有害", description: "日光灯管、节能灯、LED灯等", handling: "小心易碎，用原包装或报纸包裹后投放，防止汞蒸气泄漏" },
+            { id: 11, name: "废电子产品", category: "有害", description: "废旧手机、电脑、电路板等", handling: "含有多种重金属和有害物质，需专业拆解回收" },
+            { id: 12, name: "坚硬/不易腐烂物", category: "其他", description: "过大骨头、硬贝壳、榴莲壳、毛发、烟蒂、尘土等", handling: "投放至其他垃圾收集容器" },
+            { id: 13, name: "一次性用品", category: "其他", description: "一次性餐具（若受污染）、脏的塑料餐盒、纸杯等", handling: "投放至其他垃圾收集容器" },
+            { id: 14, name: "个人护理用品", category: "其他", description: "用过的创可贴、棉签、粉扑、旧毛巾、抹布等", handling: "投放至其他垃圾收集容器" },
+            { id: 15, name: "过期食品", category: "厨余", description: "未食用但已过期的生熟食品、糕点、糖果等", handling: "去除包装物，投放至厨余垃圾收集容器" },
+            { id: 16, name: "废化学品", category: "有害", description: "油漆桶、涂料桶、杀虫剂、消毒剂、溶剂等", handling: "密封好，防止泄漏，投放至有害垃圾收集容器，不要混合" },
+            { id: 17, name: "含水银物品", category: "有害", description: "废温度计、废血压计等", handling: "小心包裹，防止水银泄漏，如已破碎，需按水银泄漏处理方法专业处理，投放至有害垃圾收集容器" },
+            { id: 18, name: "废金属", category: "可回收", description: "易拉罐、罐头盒、旧锅、水壶、刀片、指甲钳等", handling: "保持干燥，防止生锈，尖锐物品（如刀片）需包裹，防止划伤，投放至可回收物收集容器" },
+            { id: 19, name: "废织物", category: "可回收", description: "旧衣服、裤子、床单、被套、窗帘、毛绒玩具等", handling: "保持干燥清洁，建议打包好后投放至可回收物收集容器，破损的旧衣物也属于可回收物" },
+        ];
+
+        // API配置
+        const API_CONFIG = {
+            url: 'https://api.chatanywhere.tech/v1',
+            apiKey: 'sk-F4lstd0mq2fPOsmIqzRSPtjYw4rstmIgsXXi66sHDbkWZKPx',
+            model: 'gpt-3.5-turbo'
+        };
+
+        new Vue({
+            el: '#app',
+            data: {
+                activeTab: 'all-garbage',
+                garbageData: [],
+                searchAll: '',
+                searchName: '',
+                searchCategory: '',
+                searchDescription: '',
+                searchHandling: '',
+                searchResults: [],
+                newGarbage: {
+                    name: '',
+                    category: '',
+                    description: '',
+                    handling: ''
+                },
+                editingGarbage: {
+                    id: null,
+                    name: '',
+                    category: '',
+                    description: '',
+                    handling: ''
+                },
+                viewingGarbage: null,
+                chatInput: '',
+                notification: {
+                    show: false,
+                    message: '',
+                    type: 'success'
+                },
+                garbageChart: null,
+                selectedGarbage: [],
+                selectAll: false,
+                isLoading: false,
+                isDarkMode: false,
+                isSearchPerformed: false,
+                showAdvancedSearch: false,
+                chatHistory: [
+                    {
+                        role: 'assistant',
+                        content: '您好！我是垃圾分类AI助手，可以回答您关于垃圾分类的任何问题。请问有什么可以帮助您的？'
+                    }
+                ]
+            },
+            computed: {
+                sortedGarbageData() {
+                    return [...this.garbageData].sort((a, b) => a.id - b.id);
+                },
+                filteredGarbage() {
+                    if (!this.searchAll) {
+                        return this.sortedGarbageData;
+                    }
+                    const query = this.searchAll.toLowerCase();
+                    return this.sortedGarbageData.filter(item => {
+                        return item.name.toLowerCase().includes(query) || 
+                               item.description.toLowerCase().includes(query) ||
+                               item.handling.toLowerCase().includes(query) ||
+                               item.category.toLowerCase().includes(query);
+                    });
+                },
+                recyclableCount() {
+                    return this.garbageData.filter(item => item.category === '可回收').length;
+                },
+                hazardousCount() {
+                    return this.garbageData.filter(item => item.category === '有害').length;
+                },
+                householdCount() {
+                    return this.garbageData.filter(item => item.category === '厨余').length;
+                },
+                residualCount() {
+                    return this.garbageData.filter(item => item.category === '其他').length;
+                }
+            },
+            watch: {
+                selectedGarbage: {
+                    handler(newVal) {
+                        if (this.filteredGarbage.length > 0 && newVal.length === this.filteredGarbage.length) {
+                            this.selectAll = true;
+                        } else {
+                            this.selectAll = false;
+                        }
+                    },
+                    deep: true
+                },
+                filteredGarbage: {
+                    handler() {
+                        if (this.filteredGarbage.length > 0 && this.selectedGarbage.length === this.filteredGarbage.length) {
+                            this.selectAll = true;
+                        } else {
+                            this.selectAll = false;
+                        }
+                    },
+                    deep: true
+                },
+                isDarkMode(newVal) {
+                    if (newVal) {
+                        document.body.classList.add('dark-mode');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                        localStorage.setItem('theme', 'light');
+                    }
+                    // 重新渲染图表以适配主题
+                    if (this.activeTab === 'stats' && this.garbageChart) {
+                        setTimeout(() => {
+                            this.updateChart();
+                        }, 100);
+                    }
+                }
+            },
+            methods: {
+                switchTab(tab) {
+                    this.activeTab = tab;
+                    this.selectedGarbage = [];
+                    if (tab === 'stats') {
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                this.updateChart();
+                            }, 300);
+                        });
+                    } else if (tab === 'search-garbage') {
+                        // 切换到查询页面时，如果没有执行过搜索，不显示结果
+                        if (!this.isSearchPerformed) {
+                            this.searchResults = [];
+                        }
+                    }
+                },
+                loadGarbageData() {
+                    const savedData = localStorage.getItem('garbageData');
+                    if (savedData) {
+                        try {
+                            this.garbageData = JSON.parse(savedData).sort((a, b) => a.id - b.id);
+                        } catch (e) {
+                            console.error('解析垃圾数据失败，使用初始数据', e);
+                            this.garbageData = [...initialGarbageData].sort((a, b) => a.id - b.id);
+                            this.saveGarbageData();
+                        }
+                    } else {
+                        this.garbageData = [...initialGarbageData].sort((a, b) => a.id - b.id);
+                        this.saveGarbageData();
+                    }
+                },
+                saveGarbageData() {
+                    const sortedData = [...this.garbageData].sort((a, b) => a.id - b.id);
+                    localStorage.setItem('garbageData', JSON.stringify(sortedData));
+                },
+                showNotification(message, type = 'success') {
+                    this.notification.message = message;
+                    this.notification.type = type;
+                    this.notification.show = true;
+                    
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 3000);
+                },
+                getCategoryClass(category) {
+                    switch(category) {
+                        case '可回收': return 'recyclable';
+                        case '有害': return 'hazardous';
+                        case '厨余': return 'household';
+                        case '其他': return 'residual';
+                        default: return 'residual';
+                    }
+                },
+                performSearch() {
+                    const nameQuery = this.searchName.toLowerCase();
+                    const categoryQuery = this.searchCategory;
+                    const descriptionQuery = this.searchDescription.toLowerCase();
+                    const handlingQuery = this.searchHandling.toLowerCase();
+                    
+                    this.searchResults = this.sortedGarbageData.filter(item => {
+                        // 按名称查询（模糊匹配）
+                        const nameMatch = nameQuery === '' || 
+                                        item.name.toLowerCase().includes(nameQuery);
+                        
+                        // 按分类查询（精确匹配）
+                        const categoryMatch = categoryQuery === '' || 
+                                           item.category === categoryQuery;
+                        
+                        // 按描述查询（模糊匹配）
+                        const descriptionMatch = descriptionQuery === '' || 
+                                               item.description.toLowerCase().includes(descriptionQuery);
+                        
+                        // 按处理方式查询（模糊匹配）
+                        const handlingMatch = handlingQuery === '' || 
+                                            item.handling.toLowerCase().includes(handlingQuery);
+                        
+                        // 如果所有查询条件都为空，显示所有数据
+                        if (nameQuery === '' && categoryQuery === '' && 
+                            descriptionQuery === '' && handlingQuery === '') {
+                            return true;
+                        }
+                        
+                        // 根据查询条件组合过滤
+                        return nameMatch && categoryMatch && descriptionMatch && handlingMatch;
+                    });
+                    
+                    this.isSearchPerformed = true;
+                    
+                    if (this.searchResults.length === 0 && (this.searchName || this.searchCategory || this.searchDescription || this.searchHandling)) {
+                        this.showNotification('未找到匹配的垃圾记录', 'error');
+                    } else if (this.searchResults.length > 0) {
+                        const count = this.searchResults.length;
+                        this.showNotification(`找到 ${count} 条匹配的垃圾记录`, 'success');
+                    }
+                },
+                performAllSearch() {
+                    // 搜索功能已在computed属性filteredGarbage中实现
+                    if (this.searchAll && this.filteredGarbage.length === 0) {
+                        this.showNotification('未找到匹配的垃圾记录', 'error');
+                    }
+                },
+                resetSearch() {
+                    this.searchName = '';
+                    this.searchCategory = '';
+                    this.searchDescription = '';
+                    this.searchHandling = '';
+                    this.searchResults = [];
+                    this.isSearchPerformed = false;
+                    this.showAdvancedSearch = false;
+                    this.showNotification('搜索条件已重置');
+                },
+                resetNewGarbageForm() {
+                    this.newGarbage = {
+                        name: '',
+                        category: '',
+                        description: '',
+                        handling: ''
+                    };
+                    this.showNotification('表单已重置');
+                },
+                addGarbage() {
+                    // 验证输入
+                    if (!this.newGarbage.name.trim()) {
+                        this.showNotification('请输入垃圾名称', 'error');
+                        return;
+                    }
+                    
+                    if (!this.newGarbage.category) {
+                        this.showNotification('请选择垃圾分类', 'error');
+                        return;
+                    }
+                    
+                    if (!this.newGarbage.description.trim()) {
+                        this.showNotification('请输入垃圾描述', 'error');
+                        return;
+                    }
+                    
+                    if (!this.newGarbage.handling.trim()) {
+                        this.showNotification('请输入处理方式', 'error');
+                        return;
+                    }
+                    
+                    const maxId = this.garbageData.length > 0 ? 
+                        Math.max(...this.garbageData.map(item => item.id)) : 0;
+                    const newId = maxId + 1;
+                    
+                    this.garbageData.push({
+                        id: newId,
+                        name: this.newGarbage.name,
+                        category: this.newGarbage.category,
+                        description: this.newGarbage.description,
+                        handling: this.newGarbage.handling
+                    });
+                    
+                    this.saveGarbageData();
+                    
+                    this.resetNewGarbageForm();
+                    
+                    this.showNotification('垃圾添加成功！');
+                    this.switchTab('all-garbage');
+                },
+                editGarbage(item) {
+                    this.editingGarbage = { ...item };
+                    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+                    modal.show();
+                },
+                viewDetails(item) {
+                    this.viewingGarbage = { ...item };
+                    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                    modal.show();
+                },
+                saveEdit() {
+                    const index = this.garbageData.findIndex(item => item.id === this.editingGarbage.id);
+                    if (index !== -1) {
+                        this.garbageData[index] = { ...this.editingGarbage };
+                        this.saveGarbageData();
+                        
+                        // 更新搜索结果
+                        if (this.isSearchPerformed) {
+                            this.performSearch();
+                        }
+                        
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+                        modal.hide();
+                        
+                        this.showNotification('垃圾信息修改成功！');
+                    }
+                },
+                deleteGarbage(id) {
+                    if (confirm('确定要删除这条垃圾信息吗？')) {
+                        this.garbageData = this.garbageData.filter(item => item.id !== id);
+                        this.selectedGarbage = this.selectedGarbage.filter(itemId => itemId !== id);
+                        this.saveGarbageData();
+                        
+                        // 更新搜索结果
+                        if (this.isSearchPerformed) {
+                            this.performSearch();
+                        }
+                        
+                        this.showNotification('垃圾信息删除成功！');
+                    }
+                },
+                batchDelete() {
+                    if (this.selectedGarbage.length === 0) {
+                        this.showNotification('请先选择要删除的垃圾', 'error');
+                        return;
+                    }
+                    
+                    if (confirm(`确定要删除选中的 ${this.selectedGarbage.length} 条垃圾信息吗？`)) {
+                        const originalLength = this.garbageData.length;
+                        this.garbageData = this.garbageData.filter(item => !this.selectedGarbage.includes(item.id));
+                        this.selectedGarbage = [];
+                        this.saveGarbageData();
+                        
+                        // 更新搜索结果
+                        if (this.isSearchPerformed) {
+                            this.performSearch();
+                        }
+                        
+                        this.showNotification(`成功删除 ${originalLength - this.garbageData.length} 条垃圾信息`);
+                    }
+                },
+                toggleSelectAll() {
+                    if (this.selectAll) {
+                        const allIds = this.filteredGarbage.map(item => item.id);
+                        this.selectedGarbage = [...new Set([...this.selectedGarbage, ...allIds])];
+                    } else {
+                        const currentIds = this.filteredGarbage.map(item => item.id);
+                        this.selectedGarbage = this.selectedGarbage.filter(id => !currentIds.includes(id));
+                    }
+                },
+                clearSelection() {
+                    this.selectedGarbage = [];
+                },
+                updateChart() {
+                    const ctx = document.getElementById('garbage-chart');
+                    if (!ctx) return;
+                    
+                    if (this.garbageChart) {
+                        this.garbageChart.destroy();
+                    }
+                    
+                    // 创建渐变背景
+                    const gradientRecyclable = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    gradientRecyclable.addColorStop(0, '#00C897');
+                    gradientRecyclable.addColorStop(1, '#019267');
+                    
+                    const gradientHazardous = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    gradientHazardous.addColorStop(0, '#FF6B6B');
+                    gradientHazardous.addColorStop(1, '#FF5252');
+                    
+                    const gradientHousehold = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    gradientHousehold.addColorStop(0, '#FF9A3C');
+                    gradientHousehold.addColorStop(1, '#FF7A00');
+                    
+                    const gradientResidual = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    gradientResidual.addColorStop(0, '#9E9E9E');
+                    gradientResidual.addColorStop(1, '#757575');
+                    
+                    this.garbageChart = new Chart(ctx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['可回收垃圾', '有害垃圾', '厨余垃圾', '其他垃圾'],
+                            datasets: [{
+                                data: [this.recyclableCount, this.hazardousCount, this.householdCount, this.residualCount],
+                                backgroundColor: [
+                                    gradientRecyclable,
+                                    gradientHazardous,
+                                    gradientHousehold,
+                                    gradientResidual
+                                ],
+                                borderWidth: 4,
+                                borderColor: this.isDarkMode ? '#1e293b' : '#fff',
+                                hoverBorderWidth: 6,
+                                hoverBorderColor: this.isDarkMode ? '#334155' : '#f8fafc',
+                                hoverOffset: 25,
+                                borderRadius: 12,
+                                spacing: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        padding: 25,
+                                        usePointStyle: true,
+                                        pointStyle: 'circle',
+                                        font: {
+                                            size: 14,
+                                            family: "'Microsoft YaHei', sans-serif",
+                                            weight: '700'
+                                        },
+                                        color: this.isDarkMode ? '#e2e8f0' : '#2D3748'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: this.isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                    titleColor: this.isDarkMode ? '#e2e8f0' : '#2D3748',
+                                    bodyColor: this.isDarkMode ? '#cbd5e1' : '#4A5568',
+                                    borderColor: this.isDarkMode ? '#475569' : '#E2E8F0',
+                                    borderWidth: 1,
+                                    cornerRadius: 12,
+                                    padding: 15,
+                                    boxPadding: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `数量: ${context.raw} 种`;
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true,
+                                duration: 2000,
+                                easing: 'easeOutQuart'
+                            }
+                        }
+                    });
+                },
+                async sendMessage() {
+                    const message = this.chatInput.trim();
+                    if (message === '' || this.isLoading) return;
+                    
+                    // 添加用户消息
+                    this.addMessage(message, 'user');
+                    this.chatInput = '';
+                    this.isLoading = true;
+                    
+                    // 添加思考中的提示
+                    const thinkingId = this.addThinkingMessage();
+                    
+                    try {
+                        // 调用AI API
+                        const response = await this.callAIAPI(message);
+                        
+                        // 移除思考中的提示
+                        this.removeThinkingMessage(thinkingId);
+                        
+                        // 添加AI回复
+                        this.addMessage(response, 'ai');
+                        
+                        // 更新聊天历史
+                        this.chatHistory.push(
+                            { role: 'user', content: message },
+                            { role: 'assistant', content: response }
+                        );
+                        
+                        // 限制聊天历史长度
+                        if (this.chatHistory.length > 20) {
+                            this.chatHistory = this.chatHistory.slice(-20);
+                        }
+                    } catch (error) {
+                        console.error('AI API调用失败:', error);
+                        this.removeThinkingMessage(thinkingId);
+                        this.addMessage('抱歉，我暂时无法回答您的问题。请检查网络连接或稍后再试。', 'ai');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async callAIAPI(message) {
+                    // 构建系统提示词
+                    const systemPrompt = `你是一位专业的垃圾分类助手。请根据用户的提问，提供准确、专业的垃圾分类建议和信息。
+                    
+                    可用的垃圾分类信息：
+                    ${JSON.stringify(this.garbageData.map(item => ({
+                        名称: item.name,
+                        分类: item.category,
+                        描述: item.description,
+                        处理方式: item.handling
+                    })))}
+                    
+                    请确保你的回答：
+                    1. 准确、专业、简洁
+                    2. 如果用户询问某个物品的分类，请从提供的垃圾信息中查找
+                    3. 如果找不到相关信息，请提供一般性的分类建议
+                    4. 回答时请使用中文，保持友好的语气`;
+                    
+                    // 构建请求数据
+                    const requestData = {
+                        model: API_CONFIG.model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            ...this.chatHistory.slice(-4), // 使用最近的4条历史记录
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 500
+                    };
+                    
+                    // 发送API请求
+                    const response = await fetch(`${API_CONFIG.url}/chat/completions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_CONFIG.apiKey}`
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data.choices[0].message.content.trim();
+                },
+                addMessage(text, sender) {
+                    const messagesContainer = this.$refs.chatMessages;
+                    if (!messagesContainer) return;
+                    
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    messageElement.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+                    messageElement.textContent = text;
+                    
+                    messagesContainer.appendChild(messageElement);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    
+                    return messageElement;
+                },
+                addThinkingMessage() {
+                    const messagesContainer = this.$refs.chatMessages;
+                    if (!messagesContainer) return null;
+                    
+                    const thinkingElement = document.createElement('div');
+                    thinkingElement.classList.add('message', 'thinking-message');
+                    thinkingElement.id = 'thinking-' + Date.now();
+                    
+                    const textElement = document.createElement('span');
+                    textElement.textContent = 'AI正在思考...';
+                    
+                    const typingElement = document.createElement('div');
+                    typingElement.classList.add('typing-indicator');
+                    typingElement.innerHTML = `
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    `;
+                    
+                    thinkingElement.appendChild(textElement);
+                    thinkingElement.appendChild(typingElement);
+                    messagesContainer.appendChild(thinkingElement);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    
+                    return thinkingElement.id;
+                },
+                removeThinkingMessage(id) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.remove();
+                    }
+                },
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                },
+                toggleAdvancedSearch() {
+                    this.showAdvancedSearch = !this.showAdvancedSearch;
+                },
+                highlightText(text, searchTerm) {
+                    if (!searchTerm || !text) return text;
+                    
+                    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`(${escapedTerm})`, 'gi');
+                    
+                    return text.replace(regex, '<mark class="bg-warning px-1 rounded">$1</mark>');
+                },
+                exportSearchResults() {
+                    if (this.searchResults.length === 0) {
+                        this.showNotification('没有搜索结果可导出', 'error');
+                        return;
+                    }
+                    
+                    let csvContent = "ID,名称,分类,描述,处理方式\n";
+                    
+                    this.searchResults.forEach(item => {
+                        const row = [
+                            item.id,
+                            `"${item.name}"`,
+                            `"${item.category}"`,
+                            `"${item.description.replace(/"/g, '""')}"`,
+                            `"${item.handling.replace(/"/g, '""')}"`
+                        ].join(',');
+                        csvContent += row + "\n";
+                    });
+                    
+                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `垃圾分类查询结果_${new Date().toLocaleDateString()}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    this.showNotification(`已导出 ${this.searchResults.length} 条记录`);
+                },
+                showSearchTips() {
+                    this.addMessage('搜索技巧：<br>1. 按名称搜索：支持模糊匹配，如搜索"纸"可找到所有含"纸"的垃圾<br>2. 按分类搜索：选择特定分类查看该类别所有垃圾<br>3. 组合搜索：可以同时使用名称和分类进行精确搜索<br>4. 高级搜索：可以按描述和处理方式进行搜索', 'ai');
+                },
+                initParticleBackground() {
+                    const container = this.$refs.particlesContainer;
+                    if (!container) return;
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.style.position = 'fixed';
+                    canvas.style.top = '0';
+                    canvas.style.left = '0';
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
+                    canvas.style.pointerEvents = 'none';
+                    canvas.style.zIndex = '-1';
+                    container.appendChild(canvas);
+                    
+                    const ctx = canvas.getContext('2d');
+                    const particles = [];
+                    const particleCount = 50;
+                    
+                    // 设置canvas尺寸
+                    const resizeCanvas = () => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    };
+                    
+                    resizeCanvas();
+                    window.addEventListener('resize', resizeCanvas);
+                    
+                    // 创建粒子
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            size: Math.random() * 3 + 1,
+                            speedX: Math.random() * 1 - 0.5,
+                            speedY: Math.random() * 1 - 0.5,
+                            color: this.isDarkMode ? 
+                                `rgba(100, 200, 255, ${Math.random() * 0.3 + 0.1})` :
+                                `rgba(0, 200, 151, ${Math.random() * 0.3 + 0.1})`
+                        });
+                    }
+                    
+                    // 动画循环
+                    const animate = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        particles.forEach(particle => {
+                            particle.x += particle.speedX;
+                            particle.y += particle.speedY;
+                            
+                            // 边界检查
+                            if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                            if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+                            
+                            // 绘制粒子
+                            ctx.beginPath();
+                            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                            ctx.fillStyle = particle.color;
+                            ctx.fill();
+                            
+                            // 绘制连接线
+                            particles.forEach(otherParticle => {
+                                const dx = particle.x - otherParticle.x;
+                                const dy = particle.y - otherParticle.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance < 150) {
+                                    ctx.beginPath();
+                                    ctx.strokeStyle = this.isDarkMode ?
+                                        `rgba(100, 200, 255, ${0.1 * (1 - distance/150)})` :
+                                        `rgba(0, 200, 151, ${0.1 * (1 - distance/150)})`;
+                                    ctx.lineWidth = 0.5;
+                                    ctx.moveTo(particle.x, particle.y);
+                                    ctx.lineTo(otherParticle.x, otherParticle.y);
+                                    ctx.stroke();
+                                }
+                            });
+                        });
+                        
+                        requestAnimationFrame(animate);
+                    };
+                    
+                    animate();
+                },
+                initTheme() {
+                    const savedTheme = localStorage.getItem('theme');
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+                    
+                    if (savedTheme === 'dark' || (!savedTheme && prefersDark.matches)) {
+                        this.isDarkMode = true;
+                    } else {
+                        this.isDarkMode = false;
+                    }
+                }
+            },
+            mounted() {
+                this.loadGarbageData();
+                this.initTheme();
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        this.updateChart();
+                        this.initParticleBackground();
+                    }, 300);
+                });
+                
+                // 修复：确保图表在标签切换时也能正确显示
+                const observer = new MutationObserver(() => {
+                    if (this.activeTab === 'stats') {
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                this.updateChart();
+                            }, 300);
+                        });
+                    }
+                });
+                
+                observer.observe(document.getElementById('stats'), {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
+    </script>
+</body>
+</html>
